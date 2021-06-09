@@ -1,9 +1,15 @@
 package io.jmix.ldap;
 
+import io.jmix.core.JmixOrder;
+import io.jmix.core.security.event.PreAuthenticationCheckEvent;
+import io.jmix.ldap.userdetails.JmixLdapGrantedAuthoritiesMapper;
 import io.jmix.security.StandardSecurityConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
+import org.springframework.core.annotation.Order;
 import org.springframework.ldap.core.support.LdapContextSource;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -40,25 +46,22 @@ public class LdapSecurityConfiguration extends StandardSecurityConfiguration {
                 .authoritiesMapper(grantedAuthoritiesMapper);
     }
 
-    LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
+    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
         DefaultLdapAuthoritiesPopulator authoritiesPopulator =
                 new DefaultLdapAuthoritiesPopulator(ldapContextSource, ldapProperties.getGroupSearchBase());
         authoritiesPopulator.setGroupSearchFilter(ldapProperties.getGroupSearchFilter());
         authoritiesPopulator.setSearchSubtree(ldapProperties.isGroupSearchSubtree());
         authoritiesPopulator.setGroupRoleAttribute(ldapProperties.getGroupRoleAttribute());
+        authoritiesPopulator.setRolePrefix(StringUtils.EMPTY);
         authoritiesPopulator.setConvertToUpperCase(false);
         return authoritiesPopulator;
     }
 
-//    @Bean
-//    LdapAuthenticationProvider ldapAuthenticationProvider() {
-//        BindAuthenticator authenticator = new BindAuthenticator(ldapContextSource());
-//        authenticator.setUserDnPatterns(new String[]{environment.getProperty("ldap.user.dn.pattern")});
-//        LdapAuthenticationProvider ldapAuthenticationProvider =
-//                new LdapAuthenticationProvider(authenticator, ldapAuthoritiesPopulator());
-
-//        ldapAuthenticationProvider.setUserDetailsContextMapper(ldapUserDetailsMapper());
-//        return ldapAuthenticationProvider;
-    //    }
-//    }
+    @EventListener
+    @Order(JmixOrder.LOWEST_PRECEDENCE - 10)
+    public void onPreAuthenticationCheckEvent(PreAuthenticationCheckEvent event) {
+        if (!ldapProperties.getStandardAuthenticationUsers().contains(event.getUser().getUsername())) {
+            throw new BadCredentialsException("Current user cannot be authenticated via standard authentication");
+        }
+    }
 }

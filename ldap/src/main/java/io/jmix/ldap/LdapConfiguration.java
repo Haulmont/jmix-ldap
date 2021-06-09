@@ -18,16 +18,18 @@ package io.jmix.ldap;
 
 import io.jmix.core.CoreConfiguration;
 import io.jmix.core.annotation.JmixModule;
+import io.jmix.ldap.search.JmixFilterBasedLdapUserSearch;
+import io.jmix.ldap.userdetails.JmixLdapGrantedAuthoritiesMapper;
+import io.jmix.ldap.userdetails.LdapUserRepository;
+import io.jmix.ldap.userdetails.UserDetailsServiceLdapUserDetailsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
-import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.userdetails.LdapUserDetailsMapper;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
@@ -46,6 +48,7 @@ public class LdapConfiguration {
                 new DefaultSpringSecurityContextSource(ldapProperties.getUrls(), ldapProperties.getBaseDn());
         contextSource.setUserDn(ldapProperties.getManagerDn());
         contextSource.setPassword(ldapProperties.getManagerPassword());
+//        contextSource.setReferral("follow"); todo property?
         return contextSource;
     }
 
@@ -66,7 +69,14 @@ public class LdapConfiguration {
     }
 
     @Bean
-    LdapTemplate ldapTemplate() {
-        return new LdapTemplate(ldapContextSource());
+    LdapUserRepository ldapUserRepository() {
+        JmixFilterBasedLdapUserSearch search = new JmixFilterBasedLdapUserSearch(
+                ldapProperties.getUserSearchBase(),
+                ldapProperties.getUserSearchFilter(),
+                ldapContextSource());
+
+        LdapUserRepository ldapUserRepository = new LdapUserRepository(search);
+        ldapUserRepository.setUsernameAttribute(ldapProperties.getUsernameAttribute());
+        return ldapUserRepository;
     }
 }

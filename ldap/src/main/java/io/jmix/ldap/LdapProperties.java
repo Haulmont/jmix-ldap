@@ -17,6 +17,7 @@ public class LdapProperties {
     String managerPassword;
     String userSearchBase;
     String userSearchFilter;
+    String usernameAttribute;
 
     String groupRoleAttribute;
     String groupSearchBase;
@@ -28,6 +29,7 @@ public class LdapProperties {
     String activeDirectoryRootDn;
 
     List<String> defaultRoles;
+    List<String> standardAuthenticationUsers; //todo: move to security-data?
 
     public LdapProperties(@DefaultValue("true") boolean enabled,
                           @DefaultValue("false") boolean useInternalUserDetailsService,
@@ -37,13 +39,15 @@ public class LdapProperties {
                           String managerPassword,
                           @DefaultValue("") String userSearchBase,
                           String userSearchFilter,
+                          @DefaultValue("uid") String usernameAttribute,
                           @DefaultValue("cn") String groupRoleAttribute,
-                          String groupSearchBase,
+                          @DefaultValue("") String groupSearchBase,
                           @DefaultValue("false") boolean groupSearchSubtree,
                           @DefaultValue("(uniqueMember={0})") String groupSearchFilter,
                           String activeDirectoryDomain,
                           String activeDirectoryRootDn,
-                          List<String> defaultRoles) {
+                          List<String> defaultRoles,
+                          @DefaultValue({"admin"}) List<String> standardAuthenticationUsers) {
         this.enabled = enabled;
         this.useInternalUserDetailsService = useInternalUserDetailsService;
         this.urls = urls;
@@ -52,6 +56,7 @@ public class LdapProperties {
         this.managerPassword = managerPassword;
         this.userSearchBase = userSearchBase;
         this.userSearchFilter = userSearchFilter;
+        this.usernameAttribute = usernameAttribute;
         this.groupRoleAttribute = groupRoleAttribute;
         this.groupSearchBase = groupSearchBase;
         this.groupSearchSubtree = groupSearchSubtree;
@@ -59,6 +64,7 @@ public class LdapProperties {
         this.activeDirectoryDomain = activeDirectoryDomain;
         this.activeDirectoryRootDn = activeDirectoryRootDn;
         this.defaultRoles = defaultRoles;
+        this.standardAuthenticationUsers = standardAuthenticationUsers;
     }
 
     public boolean isEnabled() {
@@ -93,6 +99,10 @@ public class LdapProperties {
         return userSearchFilter;
     }
 
+    public String getUsernameAttribute() {
+        return usernameAttribute;
+    }
+
     public String getGroupRoleAttribute() {
         return groupRoleAttribute;
     }
@@ -119,6 +129,10 @@ public class LdapProperties {
 
     public List<String> getDefaultRoles() {
         return defaultRoles;
+    }
+
+    public List<String> getStandardAuthenticationUsers() {
+        return standardAuthenticationUsers;
     }
 }
 

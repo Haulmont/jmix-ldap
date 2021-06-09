@@ -1,4 +1,4 @@
-package io.jmix.ldap;
+package io.jmix.ldap.userdetails;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.DirContextAdapter;
@@ -31,10 +31,6 @@ public class UserDetailsServiceLdapUserDetailsMapper implements UserDetailsConte
     @Override
     public UserDetails mapUserFromContext(DirContextOperations ctx, String username,
                                           Collection<? extends GrantedAuthority> authorities) {
-//        List<GrantedAuthority> mutableAuthorities = new ArrayList<>();
-//        mapUserRoles(mutableAuthorities, ctx, username);
-//        mutableAuthorities.addAll(authorities);
-
         if (synchronizationStrategy != null) {
             synchronizationStrategy.synchronizeUserDetails(ctx, username, authorities);
         }

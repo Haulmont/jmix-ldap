@@ -1,4 +1,4 @@
-package io.jmix.ldap;
+package io.jmix.ldap.userdetails;
 
 import io.jmix.security.authentication.RoleGrantedAuthority;
 import io.jmix.security.model.ResourceRole;
@@ -14,6 +14,7 @@ import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -55,7 +56,9 @@ public class JmixLdapGrantedAuthoritiesMapper implements GrantedAuthoritiesMappe
         }
         if (this.defaultRoles != null) {
             List<GrantedAuthority> defaultAuthorities = this.defaultRoles.stream()
-                    .map(this::mapAuthority).collect(Collectors.toList());
+                    .map(this::mapAuthority)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
             mapped.addAll(defaultAuthorities);
         }
         return mapped;

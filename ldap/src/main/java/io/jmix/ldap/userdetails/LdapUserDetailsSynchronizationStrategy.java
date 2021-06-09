@@ -1,4 +1,4 @@
-package io.jmix.ldap;
+package io.jmix.ldap.userdetails;
 
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
