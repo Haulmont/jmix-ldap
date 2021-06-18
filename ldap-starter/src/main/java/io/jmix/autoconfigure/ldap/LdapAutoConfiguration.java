@@ -16,12 +16,15 @@
 
 package io.jmix.autoconfigure.ldap;
 
+import io.jmix.ldap.LdapActiveDirectorySecurityConfiguration;
 import io.jmix.ldap.LdapConfiguration;
 import io.jmix.ldap.LdapSecurityConfiguration;
 import io.jmix.security.SecurityConfiguration;
 import io.jmix.security.StandardSecurityConfiguration;
+import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,8 +34,29 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 public class LdapAutoConfiguration {
 
     @EnableWebSecurity
-    @ConditionalOnProperty(prefix = "jmix.ldap", name = "enabled", havingValue = "true", matchIfMissing = true)
+    @Conditional(OnDefaultLdapConfigurationCondition.class)
     @ConditionalOnMissingBean({StandardSecurityConfiguration.class, LdapSecurityConfiguration.class})
     public static class DefaultLdapSecurityConfiguration extends LdapSecurityConfiguration {
+    }
+
+    @EnableWebSecurity
+    @ConditionalOnProperty(prefix = "jmix.ldap", name = {"enabled", "activeDirectoryMode"}, havingValue = "true")
+    @ConditionalOnMissingBean({StandardSecurityConfiguration.class, LdapActiveDirectorySecurityConfiguration.class})
+    public static class DefaultLdapActiveDirectorySecurityConfiguration extends LdapActiveDirectorySecurityConfiguration {
+    }
+
+    private static class OnDefaultLdapConfigurationCondition extends AllNestedConditions {
+
+        OnDefaultLdapConfigurationCondition() {
+            super(ConfigurationPhase.PARSE_CONFIGURATION);
+        }
+
+        @ConditionalOnProperty(prefix = "jmix.ldap", name = "enabled", havingValue = "true", matchIfMissing = true)
+        static class ldapEnabled {
+        }
+
+        @ConditionalOnProperty(prefix = "jmix.ldap", name = "activeDirectoryMode", havingValue = "false", matchIfMissing = true)
+        static class activeDirectoryModeDisabled {
+        }
     }
 }

@@ -26,6 +26,7 @@ public class LdapProperties {
     String groupSearchFilter;
 
     //Active Directory
+    Boolean activeDirectoryMode;
     String activeDirectoryDomain;
 
     String groupForSynchronization;
@@ -48,6 +49,7 @@ public class LdapProperties {
                           @DefaultValue("") String groupSearchBase,
                           @DefaultValue("false") boolean groupSearchSubtree,
                           @DefaultValue("(uniqueMember={0})") String groupSearchFilter,
+                          @DefaultValue("false") Boolean activeDirectoryMode,
                           String activeDirectoryDomain,
                           String groupForSynchronization,
                           @DefaultValue("true") Boolean synchronizeRoleAssignments,
@@ -68,6 +70,7 @@ public class LdapProperties {
         this.groupSearchBase = groupSearchBase;
         this.groupSearchSubtree = groupSearchSubtree;
         this.groupSearchFilter = groupSearchFilter;
+        this.activeDirectoryMode = activeDirectoryMode;
         this.activeDirectoryDomain = activeDirectoryDomain;
         this.groupForSynchronization = groupForSynchronization;
         this.synchronizeRoleAssignments = synchronizeRoleAssignments;
