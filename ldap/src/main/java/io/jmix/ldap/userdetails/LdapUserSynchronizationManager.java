@@ -1,29 +1,25 @@
 package io.jmix.ldap.userdetails;
 
+import io.jmix.ldap.LdapProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.query.LdapQuery;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.ldap.LdapUtils;
 import org.springframework.security.ldap.search.LdapUserSearch;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 
-import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
-
-import static org.springframework.ldap.query.LdapQueryBuilder.query;
 
 public class LdapUserSynchronizationManager {
 
     private static final Logger log = LoggerFactory.getLogger(LdapUserSynchronizationManager.class);
+
+    protected String groupDn;
 
     protected LdapTemplate ldapTemplate;
 
@@ -31,70 +27,63 @@ public class LdapUserSynchronizationManager {
 
     protected LdapUserDetailsSynchronizationStrategy synchronizationStrategy;
 
-    protected String groupObjectClass = "groupOfUniqueNames";
-
     protected String memberAttribute = "uniqueMember";
 
     protected String usernameAttribute = "uid";
 
     protected LdapAuthoritiesPopulator authoritiesPopulator;
 
+    @Autowired(required = false)
+    public void setSynchronizationStrategy(LdapUserDetailsSynchronizationStrategy synchronizationStrategy) {
+        this.synchronizationStrategy = synchronizationStrategy;
+    }
+
+    @Autowired
+    public void setLdapProperties(LdapProperties ldapProperties) {
+        this.groupDn = ldapProperties.getGroupForSynchronization();
+        this.memberAttribute = ldapProperties.getMemberAttribute();
+        this.usernameAttribute = ldapProperties.getUsernameAttribute();
+    }
+
+    @Autowired
+    public void setAuthoritiesPopulator(LdapAuthoritiesPopulator authoritiesPopulator) {
+        this.authoritiesPopulator = authoritiesPopulator;
+    }
+
     /**
      * Obtains LDAP users from the given group and synchronize them using the {@link #synchronizationStrategy}.
      */
-    public void synchronizeUsersFromGroup(String groupCn) {
-        LdapQuery query = query().attributes(memberAttribute)
-                .where("objectclass").is(groupObjectClass)
-                .and("cn").is(groupCn);
+    public void synchronizeUsersFromGroup() {
+        String groupRelativeDn = getRelativeDn(groupDn);
+        DirContextOperations groupDirContextOperations = ldapTemplate.lookupContext(groupRelativeDn);
+        String[] groupMembers = groupDirContextOperations.getStringAttributes(memberAttribute);
 
-        List<List<String>> searchResults = ldapTemplate.search(query, (AttributesMapper<List<String>>) attributes -> {
-            NamingEnumeration<?> resultEnum = attributes.get(memberAttribute).getAll();
-            List<String> result = new ArrayList<>();
-            try {
-                while (resultEnum.hasMore()) {
-                    Object searchResult = resultEnum.next();
-                    result.add(String.valueOf(searchResult));
-                }
-            } catch (NamingException e) {
-                throw org.springframework.ldap.support.LdapUtils.convertLdapException(e);
-            } finally {
-                closeNamingEnumeration(resultEnum);
-            }
-            return result;
-        });
-
-        if (searchResults.isEmpty()) {
-            throw new IllegalArgumentException("No users found in the group: " + groupCn);
+        if (groupMembers == null || groupMembers.length == 0) {
+            throw new IllegalArgumentException("No users found in the group: " + groupDn);
         } else {
-            List<String> userDns = searchResults.iterator().next();
-
-            for (String userDn : userDns) {
-                try {
-                    String relativeName = LdapUtils.getRelativeName(
-                            userDn, ldapTemplate.getContextSource().getReadOnlyContext());
-                    DirContextOperations dirContextOperations = ldapTemplate.lookupContext(relativeName);
-                    String username = dirContextOperations.getStringAttribute(usernameAttribute);
-                    Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
-                    if (authoritiesPopulator != null) {
-                        authorities = authoritiesPopulator.getGrantedAuthorities(dirContextOperations, username);
-                    }
-                    if (synchronizationStrategy != null) {
-                        synchronizationStrategy.synchronizeUserDetails(dirContextOperations, username, authorities);
-                    }
-                } catch (NamingException e) {
-                    throw org.springframework.ldap.support.LdapUtils.convertLdapException(e);
+            for (String userDn : groupMembers) {
+                String relativeName = getRelativeDn(userDn);
+                DirContextOperations dirContextOperations = ldapTemplate.lookupContext(relativeName);
+                String username = dirContextOperations.getStringAttribute(usernameAttribute);
+                Collection<? extends GrantedAuthority> authorities = Collections.emptyList();
+                if (authoritiesPopulator != null) {
+                    authorities = authoritiesPopulator.getGrantedAuthorities(dirContextOperations, username);
+                }
+                if (synchronizationStrategy != null) {
+                    synchronizationStrategy.synchronizeUserDetails(dirContextOperations, username, authorities);
                 }
             }
         }
     }
 
-    private void closeNamingEnumeration(NamingEnumeration<?> enumeration) {
+    /**
+     * Obtains the part of a DN relative to the base context.
+     */
+    protected String getRelativeDn(String dn) {
         try {
-            if (enumeration != null) {
-                enumeration.close();
-            }
+            return LdapUtils.getRelativeName(dn, ldapTemplate.getContextSource().getReadOnlyContext());
         } catch (NamingException e) {
-            // Never mind this
+            throw org.springframework.ldap.support.LdapUtils.convertLdapException(e);
         }
     }
 
@@ -106,20 +95,11 @@ public class LdapUserSynchronizationManager {
         this.ldapUserSearch = ldapUserSearch;
     }
 
-    public void setGroupObjectClass(String groupObjectClass) {
-        this.groupObjectClass = groupObjectClass;
-    }
-
     public void setMemberAttribute(String memberAttribute) {
         this.memberAttribute = memberAttribute;
     }
 
     public void setUsernameAttribute(String usernameAttribute) {
         this.usernameAttribute = usernameAttribute;
-    }
-
-    @Autowired(required = false)
-    public void setSynchronizationStrategy(LdapUserDetailsSynchronizationStrategy synchronizationStrategy) {
-        this.synchronizationStrategy = synchronizationStrategy;
     }
 }

@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +31,7 @@ public class JmixLdapGrantedAuthoritiesMapper implements GrantedAuthoritiesMappe
     private RowLevelRoleRepository rowLevelRoleRepository;
 
     private List<String> defaultRoles;
+    private Function<String, String> authorityToRoleCodeMapper;
 
     @Autowired
     public void setResourceRoleRepository(ResourceRoleRepository resourceRoleRepository) {
@@ -66,6 +68,9 @@ public class JmixLdapGrantedAuthoritiesMapper implements GrantedAuthoritiesMappe
 
     @Nullable
     protected GrantedAuthority mapAuthority(String authority) {
+        if (authorityToRoleCodeMapper != null) {
+            authority = authorityToRoleCodeMapper.apply(authority);
+        }
         ResourceRole resourceRole = resourceRoleRepository.findRoleByCode(authority);
         if (resourceRole != null) {
             return RoleGrantedAuthority.ofResourceRole(resourceRole);
@@ -81,5 +86,15 @@ public class JmixLdapGrantedAuthoritiesMapper implements GrantedAuthoritiesMappe
     public void setDefaultRoles(List<String> roles) {
         Assert.notNull(roles, "roles list cannot be null");
         this.defaultRoles = roles;
+    }
+
+    /**
+     * Sets the mapping function which will be used to convert an authority name
+     * to role code which will be used to obtain a resource role or row-level role.
+     *
+     * @param authorityToRoleCodeMapper the mapping function
+     */
+    public void setAuthorityToRoleCodeMapper(Function<String, String> authorityToRoleCodeMapper) {
+        this.authorityToRoleCodeMapper = authorityToRoleCodeMapper;
     }
 }

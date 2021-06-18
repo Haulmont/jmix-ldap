@@ -6,6 +6,7 @@ import io.jmix.ldap.userdetails.JmixLdapGrantedAuthoritiesMapper;
 import io.jmix.security.StandardSecurityConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.ldap.core.support.LdapContextSource;
@@ -46,6 +47,7 @@ public class LdapSecurityConfiguration extends StandardSecurityConfiguration {
                 .authoritiesMapper(grantedAuthoritiesMapper);
     }
 
+    @Bean
     public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
         DefaultLdapAuthoritiesPopulator authoritiesPopulator =
                 new DefaultLdapAuthoritiesPopulator(ldapContextSource, ldapProperties.getGroupSearchBase());

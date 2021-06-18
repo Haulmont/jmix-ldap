@@ -16,7 +16,7 @@
 
 package io.jmix.autoconfigure.ldap;
 
-import io.jmix.ldap.LdapADSecurityConfiguration;
+import io.jmix.ldap.LdapActiveDirectorySecurityConfiguration;
 import io.jmix.ldap.LdapConfiguration;
 import io.jmix.security.SecurityConfiguration;
 import io.jmix.security.StandardSecurityConfiguration;
@@ -28,11 +28,11 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 
 @Configuration
 @Import({SecurityConfiguration.class, LdapConfiguration.class})
-public class LdapADAutoConfiguration {
+public class LdapActiveDirectoryAutoConfiguration {
 
     @EnableWebSecurity
     @ConditionalOnProperty(prefix = "jmix.ldap", name = "enabled", havingValue = "true", matchIfMissing = true)
-    @ConditionalOnMissingBean({StandardSecurityConfiguration.class, LdapADSecurityConfiguration.class})
-    public static class DefaultLdapSecurityConfiguration extends LdapADSecurityConfiguration {
+    @ConditionalOnMissingBean({StandardSecurityConfiguration.class, LdapActiveDirectorySecurityConfiguration.class})
+    public static class DefaultLdapSecurityConfiguration extends LdapActiveDirectorySecurityConfiguration {
     }
 }

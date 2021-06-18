@@ -10,7 +10,7 @@ import java.util.List;
 @ConstructorBinding
 public class LdapProperties {
     boolean enabled;
-    boolean useInternalUserDetailsService;
+    String userDetailsSource;
     List<String> urls;
     String baseDn;
     String managerDn;
@@ -18,6 +18,7 @@ public class LdapProperties {
     String userSearchBase;
     String userSearchFilter;
     String usernameAttribute;
+    String memberAttribute;
 
     String groupRoleAttribute;
     String groupSearchBase;
@@ -26,13 +27,15 @@ public class LdapProperties {
 
     //Active Directory
     String activeDirectoryDomain;
-    String activeDirectoryRootDn;
 
+    String groupForSynchronization;
+    Boolean synchronizeRoleAssignments;
+    Boolean synchronizeUserOnLogin;
     List<String> defaultRoles;
-    List<String> standardAuthenticationUsers; //todo: move to security-data?
+    List<String> standardAuthenticationUsers;
 
     public LdapProperties(@DefaultValue("true") boolean enabled,
-                          @DefaultValue("false") boolean useInternalUserDetailsService,
+                          @DefaultValue("app") String userDetailsSource,
                           List<String> urls,
                           String baseDn,
                           String managerDn,
@@ -40,16 +43,19 @@ public class LdapProperties {
                           @DefaultValue("") String userSearchBase,
                           String userSearchFilter,
                           @DefaultValue("uid") String usernameAttribute,
+                          @DefaultValue("uniqueMember") String memberAttribute,
                           @DefaultValue("cn") String groupRoleAttribute,
                           @DefaultValue("") String groupSearchBase,
                           @DefaultValue("false") boolean groupSearchSubtree,
                           @DefaultValue("(uniqueMember={0})") String groupSearchFilter,
                           String activeDirectoryDomain,
-                          String activeDirectoryRootDn,
+                          String groupForSynchronization,
+                          @DefaultValue("true") Boolean synchronizeRoleAssignments,
+                          @DefaultValue("true") Boolean synchronizeUserOnLogin,
                           List<String> defaultRoles,
-                          @DefaultValue({"admin"}) List<String> standardAuthenticationUsers) {
+                          @DefaultValue({"admin", "system"}) List<String> standardAuthenticationUsers) {
         this.enabled = enabled;
-        this.useInternalUserDetailsService = useInternalUserDetailsService;
+        this.userDetailsSource = userDetailsSource;
         this.urls = urls;
         this.baseDn = baseDn;
         this.managerDn = managerDn;
@@ -57,12 +63,15 @@ public class LdapProperties {
         this.userSearchBase = userSearchBase;
         this.userSearchFilter = userSearchFilter;
         this.usernameAttribute = usernameAttribute;
+        this.memberAttribute = memberAttribute;
         this.groupRoleAttribute = groupRoleAttribute;
         this.groupSearchBase = groupSearchBase;
         this.groupSearchSubtree = groupSearchSubtree;
         this.groupSearchFilter = groupSearchFilter;
         this.activeDirectoryDomain = activeDirectoryDomain;
-        this.activeDirectoryRootDn = activeDirectoryRootDn;
+        this.groupForSynchronization = groupForSynchronization;
+        this.synchronizeRoleAssignments = synchronizeRoleAssignments;
+        this.synchronizeUserOnLogin = synchronizeUserOnLogin;
         this.defaultRoles = defaultRoles;
         this.standardAuthenticationUsers = standardAuthenticationUsers;
     }
@@ -71,8 +80,8 @@ public class LdapProperties {
         return enabled;
     }
 
-    public boolean isUseInternalUserDetailsService() {
-        return useInternalUserDetailsService;
+    public String getUserDetailsSource() {
+        return userDetailsSource;
     }
 
     public List<String> getUrls() {
@@ -103,6 +112,10 @@ public class LdapProperties {
         return usernameAttribute;
     }
 
+    public String getMemberAttribute() {
+        return memberAttribute;
+    }
+
     public String getGroupRoleAttribute() {
         return groupRoleAttribute;
     }
@@ -123,8 +136,16 @@ public class LdapProperties {
         return activeDirectoryDomain;
     }
 
-    public String getActiveDirectoryRootDn() {
-        return activeDirectoryRootDn;
+    public String getGroupForSynchronization() {
+        return groupForSynchronization;
+    }
+
+    public Boolean getSynchronizeRoleAssignments() {
+        return synchronizeRoleAssignments;
+    }
+
+    public Boolean getSynchronizeUserOnLogin() {
+        return synchronizeUserOnLogin;
     }
 
     public List<String> getDefaultRoles() {

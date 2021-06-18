@@ -19,8 +19,10 @@ package io.jmix.ldap;
 import io.jmix.core.CoreConfiguration;
 import io.jmix.core.annotation.JmixModule;
 import io.jmix.ldap.search.JmixFilterBasedLdapUserSearch;
+import io.jmix.ldap.search.JmixLdapTemplate;
 import io.jmix.ldap.userdetails.JmixLdapGrantedAuthoritiesMapper;
 import io.jmix.ldap.userdetails.LdapUserRepository;
+import io.jmix.ldap.userdetails.LdapUserSynchronizationManager;
 import io.jmix.ldap.userdetails.UserDetailsServiceLdapUserDetailsMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
@@ -54,10 +56,14 @@ public class LdapConfiguration {
 
     @Bean
     UserDetailsContextMapper ldapUserDetailsMapper() {
-        if (ldapProperties.isUseInternalUserDetailsService()) {
+        String userDetailsSource = ldapProperties.getUserDetailsSource();
+        if ("app".equals(userDetailsSource)) {
             return new UserDetailsServiceLdapUserDetailsMapper();
-        } else {
+        } else if ("ldap".equals(userDetailsSource)){
             return new LdapUserDetailsMapper();
+        } else {
+            throw new IllegalArgumentException("Unsupported jmix.ldap.userDetailsSource property value: "
+                    + userDetailsSource);
         }
     }
 
@@ -78,5 +84,18 @@ public class LdapConfiguration {
         LdapUserRepository ldapUserRepository = new LdapUserRepository(search);
         ldapUserRepository.setUsernameAttribute(ldapProperties.getUsernameAttribute());
         return ldapUserRepository;
+    }
+
+    @Bean
+    LdapUserSynchronizationManager ldapUserSynchronizationManager() {
+        LdapUserSynchronizationManager ldapUserSynchronizationManager = new LdapUserSynchronizationManager();
+        JmixLdapTemplate ldapTemplate = new JmixLdapTemplate(ldapContextSource());
+        ldapUserSynchronizationManager.setLdapTemplate(ldapTemplate);
+        JmixFilterBasedLdapUserSearch search = new JmixFilterBasedLdapUserSearch(
+                ldapProperties.getUserSearchBase(),
+                ldapProperties.getUserSearchFilter(),
+                ldapContextSource());
+        ldapUserSynchronizationManager.setLdapUserSearch(search);
+        return ldapUserSynchronizationManager;
     }
 }

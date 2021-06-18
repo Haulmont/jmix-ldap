@@ -5,7 +5,6 @@ import io.jmix.ldap.search.JmixLdapUserSearch;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
@@ -15,7 +14,6 @@ import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -54,20 +52,12 @@ public class LdapUserRepository implements UserRepository {
 
     @Override
     public UserDetails getSystemUser() {
-        return User.builder()
-                .username("system")
-                .password("{noop}")
-                .authorities(Collections.emptyList())
-                .build();
+        throw new UnsupportedOperationException("LdapUserRepository does not include the system user");
     }
 
     @Override
     public UserDetails getAnonymousUser() {
-        return User.builder()
-                .username("anonymous")
-                .password("{noop}")
-                .authorities(Collections.emptyList())
-                .build();
+        throw new UnsupportedOperationException("LdapUserRepository does not include the anonymous user");
     }
 
     @Override

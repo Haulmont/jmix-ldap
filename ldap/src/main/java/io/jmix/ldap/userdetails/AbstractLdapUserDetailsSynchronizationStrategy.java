@@ -4,6 +4,7 @@ import io.jmix.core.SaveContext;
 import io.jmix.core.UnconstrainedDataManager;
 import io.jmix.core.entity.EntityValues;
 import io.jmix.core.security.UserRepository;
+import io.jmix.ldap.LdapProperties;
 import io.jmix.security.authentication.RoleGrantedAuthority;
 import io.jmix.security.role.assignment.RoleAssignmentRoleType;
 import io.jmix.securitydata.entity.RoleAssignmentEntity;
@@ -35,14 +36,16 @@ public abstract class AbstractLdapUserDetailsSynchronizationStrategy<T extends U
     @Autowired
     protected JmixLdapGrantedAuthoritiesMapper authoritiesMapper;
 
-    protected boolean synchronizeRoles = true;
+    @Autowired
+    protected LdapProperties ldapProperties;
 
     @Override
+    @SuppressWarnings("unchecked")
     public UserDetails synchronizeUserDetails(DirContextOperations ctx, String username,
                                               Collection<? extends GrantedAuthority> authorities) {
-        UserDetails jmixUserDetails;
+        T jmixUserDetails;
         try {
-            jmixUserDetails = userRepository.loadUserByUsername(username);
+            jmixUserDetails = (T) userRepository.loadUserByUsername(username);
         } catch (UsernameNotFoundException e) {
             log.info("User with login {} wasn't found in user repository", username);
             jmixUserDetails = createUserDetails(username, ctx);
@@ -52,7 +55,7 @@ public abstract class AbstractLdapUserDetailsSynchronizationStrategy<T extends U
         mapUserDetailsAttributes(jmixUserDetails, ctx);
 
         SaveContext saveContext = new SaveContext();
-        if (synchronizeRoles) {
+        if (ldapProperties.getSynchronizeRoleAssignments()) {
             Set<GrantedAuthority> grantedAuthorities = authoritiesMapper.mapAuthorities(authorities);
             grantedAuthorities.addAll(getAdditionalRoles(ctx, username));
 
@@ -101,10 +104,7 @@ public abstract class AbstractLdapUserDetailsSynchronizationStrategy<T extends U
         return userDetails;
     }
 
-    protected void mapUserDetailsAttributes(UserDetails userDetails, DirContextOperations ctx) {
-        EntityValues.setValue(userDetails, "lastName", ctx.getStringAttribute("sn"));
-        EntityValues.setValue(userDetails, "email", ctx.getStringAttribute("mail"));
-    }
+    protected abstract void mapUserDetailsAttributes(T userDetails, DirContextOperations ctx);
 
     /**
      * This method should be overridden if required to obtain any additional roles for the
@@ -115,5 +115,9 @@ public abstract class AbstractLdapUserDetailsSynchronizationStrategy<T extends U
      */
     protected Set<GrantedAuthority> getAdditionalRoles(DirContextOperations user, String username) {
         return Collections.emptySet();
+    }
+
+    protected String formatUsername(DirContextOperations user, String username) {
+        return username;
     }
 }
