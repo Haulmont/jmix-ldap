@@ -6,13 +6,11 @@ import io.jmix.ldap.userdetails.JmixLdapGrantedAuthoritiesMapper;
 import io.jmix.security.StandardSecurityConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
@@ -28,6 +26,9 @@ public class LdapSecurityConfiguration extends StandardSecurityConfiguration {
     protected UserDetailsContextMapper ldapUserDetailsContextMapper;
 
     @Autowired
+    protected LdapAuthoritiesPopulator ldapAuthoritiesPopulator;
+
+    @Autowired
     protected JmixLdapGrantedAuthoritiesMapper grantedAuthoritiesMapper;
 
     @Override
@@ -41,22 +42,10 @@ public class LdapSecurityConfiguration extends StandardSecurityConfiguration {
                 .contextSource(ldapContextSource)
                 .userSearchBase(ldapProperties.getUserSearchBase())
                 .userSearchFilter(ldapProperties.getUserSearchFilter())
-                .ldapAuthoritiesPopulator(ldapAuthoritiesPopulator())
+                .ldapAuthoritiesPopulator(ldapAuthoritiesPopulator)
                 .rolePrefix(StringUtils.EMPTY)
                 .userDetailsContextMapper(ldapUserDetailsContextMapper)
                 .authoritiesMapper(grantedAuthoritiesMapper);
-    }
-
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-        DefaultLdapAuthoritiesPopulator authoritiesPopulator =
-                new DefaultLdapAuthoritiesPopulator(ldapContextSource, ldapProperties.getGroupSearchBase());
-        authoritiesPopulator.setGroupSearchFilter(ldapProperties.getGroupSearchFilter());
-        authoritiesPopulator.setSearchSubtree(ldapProperties.isGroupSearchSubtree());
-        authoritiesPopulator.setGroupRoleAttribute(ldapProperties.getGroupRoleAttribute());
-        authoritiesPopulator.setRolePrefix(StringUtils.EMPTY);
-        authoritiesPopulator.setConvertToUpperCase(false);
-        return authoritiesPopulator;
     }
 
     @EventListener

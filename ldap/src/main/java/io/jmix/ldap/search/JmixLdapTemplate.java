@@ -18,6 +18,9 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Extension of Spring LDAP's LdapTemplate class which adds extra functionality required by Jmix.
+ */
 public class JmixLdapTemplate extends LdapTemplate {
 
     private SearchControls searchControls = new SearchControls();
@@ -46,8 +49,7 @@ public class JmixLdapTemplate extends LdapTemplate {
                 Assert.notNull(dca, "No object returned by search, DirContext is not correctly configured");
                 results.add(dca);
             }
-        }
-        catch (PartialResultException ex) {
+        } catch (PartialResultException ex) {
             LdapUtils.closeEnumeration(resultsEnum);
         }
         if (results.size() == 0) {

@@ -4,6 +4,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
+import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
 
 @ConfigurationProperties(prefix = "jmix.ldap")
@@ -54,7 +56,7 @@ public class LdapProperties {
                           String groupForSynchronization,
                           @DefaultValue("true") Boolean synchronizeRoleAssignments,
                           @DefaultValue("true") Boolean synchronizeUserOnLogin,
-                          List<String> defaultRoles,
+                          @Nullable List<String> defaultRoles,
                           @DefaultValue({"admin", "system"}) List<String> standardAuthenticationUsers) {
         this.enabled = enabled;
         this.userDetailsSource = userDetailsSource;
@@ -75,7 +77,7 @@ public class LdapProperties {
         this.groupForSynchronization = groupForSynchronization;
         this.synchronizeRoleAssignments = synchronizeRoleAssignments;
         this.synchronizeUserOnLogin = synchronizeUserOnLogin;
-        this.defaultRoles = defaultRoles;
+        this.defaultRoles = defaultRoles == null ? Collections.emptyList() : defaultRoles;
         this.standardAuthenticationUsers = standardAuthenticationUsers;
     }
 
@@ -137,6 +139,10 @@ public class LdapProperties {
 
     public String getActiveDirectoryDomain() {
         return activeDirectoryDomain;
+    }
+
+    public Boolean getActiveDirectoryMode() {
+        return activeDirectoryMode;
     }
 
     public String getGroupForSynchronization() {

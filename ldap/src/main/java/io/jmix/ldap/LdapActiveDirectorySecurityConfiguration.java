@@ -2,19 +2,16 @@ package io.jmix.ldap;
 
 import io.jmix.core.JmixOrder;
 import io.jmix.core.security.event.PreAuthenticationCheckEvent;
-import io.jmix.ldap.userdetails.ActiveDirectoryLdapAuthoritiesPopulator;
 import io.jmix.ldap.userdetails.JmixLdapGrantedAuthoritiesMapper;
 import io.jmix.security.StandardSecurityConfiguration;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAuthenticationProvider;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
 public class LdapActiveDirectorySecurityConfiguration extends StandardSecurityConfiguration {
@@ -31,22 +28,18 @@ public class LdapActiveDirectorySecurityConfiguration extends StandardSecurityCo
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         super.configure(auth);
-        auth.authenticationProvider(activeDirectoryAuthenticationProvider());
+        auth.authenticationProvider(activeDirectoryLdapAuthenticationProvider());
     }
 
-    AuthenticationProvider activeDirectoryAuthenticationProvider() {
+    AuthenticationProvider activeDirectoryLdapAuthenticationProvider() {
         String urls = StringUtils.join(ldapProperties.getUrls(), StringUtils.SPACE);
         ActiveDirectoryLdapAuthenticationProvider authenticationProvider =
-                new ActiveDirectoryLdapAuthenticationProvider(ldapProperties.getActiveDirectoryDomain(), urls);
+                new ActiveDirectoryLdapAuthenticationProvider(ldapProperties.getActiveDirectoryDomain(), urls,
+                        ldapProperties.getUserSearchBase());
         authenticationProvider.setConvertSubErrorCodesToExceptions(true);
         authenticationProvider.setUserDetailsContextMapper(ldapUserDetailsContextMapper);
         authenticationProvider.setAuthoritiesMapper(grantedAuthoritiesMapper);
         return authenticationProvider;
-    }
-
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-        return new ActiveDirectoryLdapAuthoritiesPopulator();
     }
 
     @EventListener

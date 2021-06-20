@@ -9,11 +9,15 @@ import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.ldap.SpringSecurityLdapTemplate;
+import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.util.Assert;
 
 import javax.naming.directory.SearchControls;
 import java.util.Set;
 
+/**
+ * Mostly copied from {@link FilterBasedLdapUserSearch} in order to add {@link #searchForUsersBySubstring} method.
+ */
 public class JmixFilterBasedLdapUserSearch implements JmixLdapUserSearch {
 
     private static final Log logger = LogFactory.getLog(JmixFilterBasedLdapUserSearch.class);
@@ -45,13 +49,14 @@ public class JmixFilterBasedLdapUserSearch implements JmixLdapUserSearch {
      * <li>(uid={0}) - this would search for a username match on the uid attribute.</li>
      * </ul>
      */
-    private final String searchFilter;
+    private final String userSearchFilter;
 
-    public JmixFilterBasedLdapUserSearch(String searchBase, String searchFilter, BaseLdapPathContextSource contextSource) {
+    public JmixFilterBasedLdapUserSearch(String searchBase, String userSearchFilter,
+                                         BaseLdapPathContextSource contextSource) {
         Assert.notNull(contextSource, "contextSource must not be null");
-        Assert.notNull(searchFilter, "searchFilter must not be null.");
+        Assert.notNull(userSearchFilter, "userSearchFilter must not be null.");
         Assert.notNull(searchBase, "searchBase must not be null (an empty string is acceptable).");
-        this.searchFilter = searchFilter;
+        this.userSearchFilter = userSearchFilter;
         this.contextSource = contextSource;
         this.searchBase = searchBase;
         setSearchSubtree(true);
@@ -75,7 +80,7 @@ public class JmixFilterBasedLdapUserSearch implements JmixLdapUserSearch {
         SpringSecurityLdapTemplate template = new SpringSecurityLdapTemplate(this.contextSource);
         template.setSearchControls(this.searchControls);
         try {
-            return template.searchForSingleEntry(this.searchBase, this.searchFilter, new String[]{username});
+            return template.searchForSingleEntry(this.searchBase, this.userSearchFilter, new String[]{username});
         } catch (IncorrectResultSizeDataAccessException ex) {
             if (ex.getActualSize() == 0) {
                 throw new UsernameNotFoundException("User " + username + " not found in directory.");
@@ -91,7 +96,7 @@ public class JmixFilterBasedLdapUserSearch implements JmixLdapUserSearch {
         JmixLdapTemplate template = new JmixLdapTemplate(this.contextSource);
         template.setSearchControls(this.searchControls);
         return template.searchForMultipleEntries(this.searchBase,
-                this.searchFilter.replace("{0}", "*{0}*"), new String[]{substring});
+                this.userSearchFilter.replace("{0}", "*{0}*"), new String[]{substring});
     }
 
     /**
@@ -141,7 +146,7 @@ public class JmixFilterBasedLdapUserSearch implements JmixLdapUserSearch {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("[ searchFilter: '").append(this.searchFilter).append("', ");
+        sb.append("[ searchFilter: '").append(this.userSearchFilter).append("', ");
         sb.append("searchBase: '").append(this.searchBase).append("'");
         sb.append(", scope: ").append(
                 (this.searchControls.getSearchScope() != SearchControls.SUBTREE_SCOPE) ? "single-level, " : "subtree");

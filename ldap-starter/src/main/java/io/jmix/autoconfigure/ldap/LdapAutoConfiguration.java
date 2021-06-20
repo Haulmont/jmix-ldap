@@ -40,7 +40,7 @@ public class LdapAutoConfiguration {
     }
 
     @EnableWebSecurity
-    @ConditionalOnProperty(prefix = "jmix.ldap", name = {"enabled", "activeDirectoryMode"}, havingValue = "true")
+    @Conditional(OnActiveDirectoryLdapConfigurationCondition.class)
     @ConditionalOnMissingBean({StandardSecurityConfiguration.class, LdapActiveDirectorySecurityConfiguration.class})
     public static class DefaultLdapActiveDirectorySecurityConfiguration extends LdapActiveDirectorySecurityConfiguration {
     }
@@ -56,6 +56,21 @@ public class LdapAutoConfiguration {
         }
 
         @ConditionalOnProperty(prefix = "jmix.ldap", name = "activeDirectoryMode", havingValue = "false", matchIfMissing = true)
+        static class activeDirectoryModeDisabled {
+        }
+    }
+
+    private static class OnActiveDirectoryLdapConfigurationCondition extends AllNestedConditions {
+
+        OnActiveDirectoryLdapConfigurationCondition() {
+            super(ConfigurationPhase.PARSE_CONFIGURATION);
+        }
+
+        @ConditionalOnProperty(prefix = "jmix.ldap", name = "enabled", havingValue = "true", matchIfMissing = true)
+        static class ldapEnabled {
+        }
+
+        @ConditionalOnProperty(prefix = "jmix.ldap", name = "activeDirectoryMode", havingValue = "true")
         static class activeDirectoryModeDisabled {
         }
     }

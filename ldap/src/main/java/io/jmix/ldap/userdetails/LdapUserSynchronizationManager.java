@@ -52,8 +52,19 @@ public class LdapUserSynchronizationManager {
 
     /**
      * Obtains LDAP users from the given group and synchronize them using the {@link #synchronizationStrategy}.
+     *
+     * @throws IllegalArgumentException when LDAP group for synchronization is not set or
+     *                                  group does not contain any users.
+     * @throws IllegalStateException    when LdapUserDetailsSynchronizationStrategy bean is not found.
      */
     public void synchronizeUsersFromGroup() {
+        if (groupDn == null) {
+            throw new IllegalArgumentException("LDAP group for synchronization is not set in application properties");
+        }
+        if (synchronizationStrategy == null) {
+            throw new IllegalStateException("LdapUserDetailsSynchronizationStrategy bean is not found");
+        }
+
         String groupRelativeDn = getRelativeDn(groupDn);
         DirContextOperations groupDirContextOperations = ldapTemplate.lookupContext(groupRelativeDn);
         String[] groupMembers = groupDirContextOperations.getStringAttributes(memberAttribute);
@@ -69,9 +80,7 @@ public class LdapUserSynchronizationManager {
                 if (authoritiesPopulator != null) {
                     authorities = authoritiesPopulator.getGrantedAuthorities(dirContextOperations, username);
                 }
-                if (synchronizationStrategy != null) {
-                    synchronizationStrategy.synchronizeUserDetails(dirContextOperations, username, authorities);
-                }
+                synchronizationStrategy.synchronizeUserDetails(dirContextOperations, username, authorities);
             }
         }
     }

@@ -1,5 +1,7 @@
 package io.jmix.ldap.userdetails;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.ldap.core.DistinguishedName;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,16 +16,18 @@ import java.util.List;
 
 public class ActiveDirectoryLdapAuthoritiesPopulator implements LdapAuthoritiesPopulator {
 
+    private static final Logger log = LoggerFactory.getLogger(ActiveDirectoryLdapAuthoritiesPopulator.class);
+
     @Override
     public Collection<? extends GrantedAuthority> getGrantedAuthorities(DirContextOperations userData, String username) {
         String[] groups = userData.getStringAttributes("memberOf");
         if (groups == null) {
-//            this.logger.debug("No values for 'memberOf' attribute.");
+            log.debug("No values for 'memberOf' attribute.");
             return AuthorityUtils.NO_AUTHORITIES;
         }
-//        if (this.logger.isDebugEnabled()) {
-//            this.logger.debug("'memberOf' attribute values: " + Arrays.asList(groups));
-//        }
+        if (log.isDebugEnabled()) {
+            log.debug("'memberOf' attribute values: " + Arrays.asList(groups));
+        }
         List<GrantedAuthority> authorities = new ArrayList<>(groups.length);
         for (String group : groups) {
             authorities.add(new SimpleGrantedAuthority(new DistinguishedName(group).removeLast().getValue()));

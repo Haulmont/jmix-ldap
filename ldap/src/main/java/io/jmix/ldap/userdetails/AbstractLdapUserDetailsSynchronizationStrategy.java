@@ -22,6 +22,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * A basic implementation of {@link LdapUserDetailsSynchronizationStrategy}, which provides
+ * a general functionality for user synchronization with {@link UserRepository}.
+ *
+ * @param <T> user details class
+ */
 public abstract class AbstractLdapUserDetailsSynchronizationStrategy<T extends UserDetails>
         implements LdapUserDetailsSynchronizationStrategy {
 
@@ -104,6 +110,12 @@ public abstract class AbstractLdapUserDetailsSynchronizationStrategy<T extends U
         return userDetails;
     }
 
+    /**
+     * This method should be overridden to define how attributes mapping is to be performed.
+     *
+     * @param userDetails a UserDetails which should be populated with attributes from LDAP.
+     * @param ctx         a DirContextOperations object containing the user's full DN and attributes.
+     */
     protected abstract void mapUserDetailsAttributes(T userDetails, DirContextOperations ctx);
 
     /**
@@ -115,9 +127,5 @@ public abstract class AbstractLdapUserDetailsSynchronizationStrategy<T extends U
      */
     protected Set<GrantedAuthority> getAdditionalRoles(DirContextOperations user, String username) {
         return Collections.emptySet();
-    }
-
-    protected String formatUsername(DirContextOperations user, String username) {
-        return username;
     }
 }

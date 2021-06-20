@@ -52,7 +52,7 @@ public class UserDetailsServiceLdapUserDetailsMapper implements UserDetailsConte
 
     @Override
     public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
-        throw new UnsupportedOperationException("JmixLdapUserDetailsMapper only supports reading from a context. Please"
-                + " use a subclass if mapUserToContext() is required.");
+        throw new UnsupportedOperationException("UserDetailsServiceLdapUserDetailsMapper only supports reading from " +
+                "a context. Please use a subclass if mapUserToContext() is required.");
     }
 }

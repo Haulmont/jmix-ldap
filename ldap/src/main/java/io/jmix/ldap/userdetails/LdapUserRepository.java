@@ -17,6 +17,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Implementation of UserRepository that searches for users in LDAP.
+ */
 public class LdapUserRepository implements UserRepository {
 
     private final JmixLdapUserSearch userSearch;
