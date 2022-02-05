@@ -75,7 +75,7 @@ public class LdapProperties {
                           @DefaultValue("true") Boolean synchronizeUserOnLogin,
                           @Nullable List<String> defaultRoles,
                           @DefaultValue({"admin", "system"}) List<String> standardAuthenticationUsers,
-                          @DefaultValue("ignore") String managerReferral) {
+                          String managerReferral) {
         this.enabled = enabled;
         this.userDetailsSource = userDetailsSource;
         this.urls = urls;
