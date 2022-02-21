@@ -46,7 +46,7 @@ public class JmixLdapAuthoritiesPopulator extends DefaultLdapAuthoritiesPopulato
     }
 
     @Autowired(required = false)
-    public void setAdditionalRoleProviderTodoRenameMe(LdapUserAdditionalRoleProvider ldapUserAdditionalRoleProvider) {
+    public void setUserAdditionalRoleProvider(LdapUserAdditionalRoleProvider ldapUserAdditionalRoleProvider) {
         this.ldapUserAdditionalRoleProvider = ldapUserAdditionalRoleProvider;
     }
 
