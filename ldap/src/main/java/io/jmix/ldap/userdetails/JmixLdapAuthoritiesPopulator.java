@@ -34,13 +34,6 @@ public class JmixLdapAuthoritiesPopulator extends DefaultLdapAuthoritiesPopulato
 
     protected LdapUserAdditionalRoleProvider ldapUserAdditionalRoleProvider;
 
-    /**
-     * Constructor for group search scenarios. <tt>userRoleAttributes</tt> may still be
-     * set as a property.
-     *
-     * @param contextSource   supplies the contexts used to search for user roles.
-     * @param groupSearchBase if this is an empty string the search will be performed from
-     */
     public JmixLdapAuthoritiesPopulator(ContextSource contextSource, String groupSearchBase) {
         super(contextSource, groupSearchBase);
     }

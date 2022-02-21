@@ -28,6 +28,16 @@ public interface LdapUserAdditionalRoleProvider {
 
     /**
      * Obtains for given user additional roles which will be merged with those obtained by the group search.
+     * <p>
+     * Usage example:
+     * <pre>{@code
+     *     Set<GrantedAuthority> authorities = new HashSet<>();
+     *     String customUserRole = user.getStringAttribute("uid");
+     *     if (!Strings.isNullOrEmpty(customUserRole)) {
+     *         authorities.add(new SimpleGrantedAuthority(customUserRole));
+     *     }
+     *     return authorities;
+     * }</pre>
      *
      * @param user the user for which it is necessary to calculate additional roles
      * @return the extra roles for provided {@code user}
